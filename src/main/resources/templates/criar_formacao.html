@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Adicionar Formação</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Adicionar Formação</h2>
+    <form id="addFormacaoForm" class="mb-4">
+        <div class="form-group">
+            <label for="nomeCurso">Nome do Curso:</label>
+            <input type="text" id="nomeCurso" name="nomeCurso" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="nivelCurso">Nível do Curso:</label>
+            <select id="nivelCurso" name="nivelCurso" class="form-control" required>
+                <option value="ENSINO_MEDIO">Ensino Médio</option>
+                <option value="TECNICO">Técnico</option>
+                <option value="BACHARELADO">Bacharelado</option>
+                <option value="ESPECIALIZACAO">Especialização</option>
+                <option value="MESTRADO">Mestrado</option>
+                <!-- Adicione outros níveis conforme necessário -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="dataConclusao">Data de Conclusão:</label>
+            <input type="date" id="dataConclusao" name="dataConclusao" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="nomeInstituicao">Nome da Instituição:</label>
+            <input type="text" id="nomeInstituicao" name="nomeInstituicao" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="pessoa">Pessoa:</label>
+            <select id="pessoa" name="pessoa" class="form-control" required>
+                <!-- Conteúdo será preenchido pelo JavaScript -->
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" onclick="location.href='/formacoes'">Voltar</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function() {
+        fetch('/api/pessoas')
+            .then(response => response.json())
+            .then(data => {
+                const pessoaSelect = $('#pessoa');
+                data.forEach(pessoa => {
+                    pessoaSelect.append(`<option value="${pessoa.id}">${pessoa.nome}</option>`);
+                });
+            });
+
+        $('#addFormacaoForm').on('submit', function(event) {
+            event.preventDefault();
+            const formacaoData = {
+                nomeCurso: $('#nomeCurso').val(),
+                nivelCurso: $('#nivelCurso').val(),
+                dataConclusao: $('#dataConclusao').val(),
+                nomeInstituicao: $('#nomeInstituicao').val(),
+                pessoa: { id: $('#pessoa').val() }
+            };
+            fetch('/api/formacoes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formacaoData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.message) });
+                    }
+                    alert('Formação adicionada com sucesso!');
+                    window.location.href = '/formacoes';
+                })
+                .catch(error => {
+                    alert('Erro: ' + error.message);
+                });
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

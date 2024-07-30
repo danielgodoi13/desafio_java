@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gerenciar Formações</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Gerenciar Formações</h2>
+    <form id="searchForm" class="mb-4">
+        <div class="form-group">
+            <label for="search">Buscar por ID:</label>
+            <div class="input-group">
+                <input type="text" id="search" name="search" class="form-control">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Buscar</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="form-group mb-4">
+        <button class="btn btn-primary" onclick="location.href='/formacao/criar'">Adicionar Formação</button>
+        <button class="btn btn-secondary" onclick="location.href='/'">Voltar</button>
+    </div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome do Curso</th>
+            <th>Nível do Curso</th>
+            <th>Nome da Instituição</th>
+            <th>Ações</th>
+        </tr>
+        </thead>
+        <tbody id="formacoesList">
+        <!-- Conteúdo será preenchido pelo JavaScript -->
+        </tbody>
+    </table>
+</div>
+<script>
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const id = document.getElementById('search').value;
+        fetch(`/api/formacoes/${id}`)
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(err => { throw new Error(err) });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tableBody = document.getElementById('formacoesList');
+                tableBody.innerHTML = ''; // Limpa a tabela antes de adicionar o novo resultado
+                tableBody.innerHTML = `
+                    <tr>
+                        <td>${data.id}</td>
+                        <td>${data.nomeCurso}</td>
+                        <td>${data.nivelCurso}</td>
+                        <td>${data.nomeInstituicao}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="location.href='/formacao/${data.id}'">Editar</button>
+                            <button class="btn btn-danger" onclick="deleteFormacao(${data.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            })
+            .catch(error => {
+                alert('Erro: ' + error.message);
+            });
+    });
+
+    function deleteFormacao(id) {
+        fetch(`/api/formacoes/${id}`, { method: 'DELETE' })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(err => { throw new Error(err) });
+                }
+                location.reload();
+            })
+            .catch(error => {
+                alert('Erro: ' + error.message);
+            });
+    }
+
+    fetch('/api/formacoes')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('formacoesList');
+            data.forEach(formacao => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${formacao.id}</td>
+                        <td>${formacao.nomeCurso}</td>
+                        <td>${formacao.nivelCurso}</td>
+                        <td>${formacao.nomeInstituicao}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="location.href='/formacao/${formacao.id}'">Editar</button>
+                            <button class="btn btn-danger" onclick="deleteFormacao(${formacao.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => {
+            alert('Erro: ' + error.message);
+        });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

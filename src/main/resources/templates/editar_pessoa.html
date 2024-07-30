@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:object="${pessoa}">
+<head>
+    <title>Editar Pessoa</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Editar Pessoa</h2>
+    <form id="editPessoaForm" class="mb-4">
+        <input type="hidden" id="id" name="id">
+        <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" class="form-control" th:value="*{nome}" required>
+        </div>
+        <div class="form-group">
+            <label for="cpf">CPF:</label>
+            <input type="text" id="cpf" name="cpf" class="form-control" th:value="*{cpf}" required>
+        </div>
+        <div class="form-group">
+            <label for="dataNascimento">Data de Nascimento:</label>
+            <input type="date" id="dataNascimento" name="dataNascimento" class="form-control" th:value="*{dataNascimento}" required>
+        </div>
+        <div class="form-group">
+            <label for="genero">Gênero:</label>
+            <select id="genero" name="genero" class="form-control" required>
+                <option th:each="genero : ${generos}" th:value="${genero}" th:text="${genero}"
+                        th:selected="${genero} == *{genero}"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="telefone">Telefone:</label>
+            <input type="text" id="telefone" name="telefone" class="form-control" th:value="*{telefone}" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" class="form-control" th:value="*{email}" required>
+        </div>
+        <div class="form-group">
+            <label for="time">Time:</label>
+            <select id="time" name="time" class="form-control">
+                <option th:each="time : ${times}" th:value="${time.id}" th:text="${time.nome}"
+                        th:selected="${time.id} == *{time.id}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" onclick="location.href='/pessoas'">Voltar</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function() {
+        $('#cpf').mask('000.000.000-00');
+        $('#telefone').mask('(00) 00000-0000');
+
+        const id = window.location.pathname.split('/').pop();
+
+        fetch(`/api/pessoas/${id}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Pessoa não encontrada');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.id !== undefined) {
+                    $('#id').val(data.id);
+                    $('#nome').val(data.nome);
+                    $('#cpf').val(data.cpf);
+                    $('#dataNascimento').val(data.dataNascimento);
+                    $('#genero').val(data.genero);
+                    $('#telefone').val(data.telefone);
+                    $('#email').val(data.email);
+                    $('#time').val(data.time.id);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados da pessoa:', error);
+            });
+
+        $('#editPessoaForm').on('submit', function(event) {
+            event.preventDefault();
+            const pessoaData = {
+                id: $('#id').val(),
+                nome: $('#nome').val(),
+                cpf: $('#cpf').val().replace(/\D/g, ''),
+                dataNascimento: $('#dataNascimento').val(),
+                genero: $('#genero').val(),
+                telefone: $('#telefone').val(),
+                email: $('#email').val(),
+                time: { id: $('#time').val() }
+            };
+            fetch(`/api/pessoas/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pessoaData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(err => { throw new Error(err) });
+                    }
+                    alert('Pessoa atualizada com sucesso!');
+                    window.location.href = '/pessoas';
+                })
+                .catch(error => {
+                    alert('Erro: ' + error.message);
+                    console.error('Erro ao atualizar pessoa:', error);
+                });
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

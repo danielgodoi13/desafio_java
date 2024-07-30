@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editar Time</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Editar Time</h2>
+    <form id="editTimeForm" class="mb-4">
+        <input type="hidden" id="id" name="id">
+        <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="setor">Setor:</label>
+            <input type="text" id="setor" name="setor" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" onclick="location.href='/times'">Voltar</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function() {
+        const id = window.location.pathname.split('/').pop();
+
+        fetch(`/api/times/${id}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Time não encontrado');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.id !== undefined) {
+                    $('#id').val(data.id);
+                    $('#nome').val(data.nome);
+                    $('#setor').val(data.setor);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados do time:', error);
+            });
+
+        $('#editTimeForm').on('submit', function(event) {
+            event.preventDefault();
+            const timeData = {
+                id: $('#id').val(),
+                nome: $('#nome').val(),
+                setor: $('#setor').val()
+            };
+
+            fetch(`/api/times/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(timeData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(err => { throw new Error(err) });
+                    }
+                    alert('Time atualizado com sucesso!');
+                    window.location.href = '/times';
+                })
+                .catch(error => {
+                    alert('Erro: ' + error.message);
+                    console.error('Erro ao atualizar time:', error);
+                });
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

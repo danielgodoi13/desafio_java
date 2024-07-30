@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Adicionar Pessoa</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Adicionar Pessoa</h2>
+    <form id="addPessoaForm" class="mb-4">
+        <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="cpf">CPF:</label>
+            <input type="text" id="cpf" name="cpf" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="dataNascimento">Data de Nascimento:</label>
+            <input type="date" id="dataNascimento" name="dataNascimento" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="genero">Gênero:</label>
+            <select id="genero" name="genero" class="form-control" required>
+                <option value="MASCULINO">Masculino</option>
+                <option value="FEMININO">Feminino</option>
+                <option value="OUTRO">Outro</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="telefone">Telefone:</label>
+            <input type="text" id="telefone" name="telefone" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="time">Time:</label>
+            <select id="time" name="time" class="form-control" required>
+                <!-- Conteúdo será preenchido pelo JavaScript -->
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" onclick="location.href='/pessoas'">Voltar</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function() {
+        $('#cpf').mask('000.000.000-00');
+        $('#telefone').mask('(00) 00000-0000');
+
+        fetch('/api/times')
+            .then(response => response.json())
+            .then(data => {
+                const timeSelect = $('#time');
+                data.forEach(time => {
+                    timeSelect.append(`<option value="${time.id}">${time.nome}</option>`);
+                });
+            });
+
+        $('#addPessoaForm').on('submit', function(event) {
+            event.preventDefault();
+            const pessoaData = {
+                nome: $('#nome').val(),
+                cpf: $('#cpf').val().replace(/\D/g, ''),
+                dataNascimento: $('#dataNascimento').val(),
+                genero: $('#genero').val(),
+                telefone: $('#telefone').val(),
+                email: $('#email').val(),
+                time: { id: $('#time').val() }
+            };
+            fetch('/api/pessoas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pessoaData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(err => { throw new Error(err) });
+                    }
+                    alert('Pessoa adicionada com sucesso!');
+                    window.location.href = '/pessoas';
+                })
+                .catch(error => {
+                    alert('Erro: ' + error.message);
+                });
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

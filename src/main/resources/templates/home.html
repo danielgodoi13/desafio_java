@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h2 class="text-left">Bem-vindo ao Desafio Java!</h2>
+        </div>
+        <div class="col-md-6 text-right">
+            <div class="btn-group" role="group" aria-label="Gerenciamento">
+                <a th:href="@{/times}" class="btn btn-primary">Gerenciar Times</a>
+                <a th:href="@{/pessoas}" class="btn btn-primary">Gerenciar Pessoas</a>
+                <a th:href="@{/formacoes}" class="btn btn-primary">Gerenciar Formações</a>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div id="times-container" class="d-flex flex-wrap justify-content-center">
+            <!-- Conteúdo será preenchido pelo JavaScript -->
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function() {
+        fetch('/api/pessoas-formacoes')
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(err => { throw new Error(err) });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const timesContainer = $('#times-container');
+                let timesMap = new Map();
+
+                data.forEach(item => {
+                    if (!timesMap.has(item.nomeTime)) {
+                        timesMap.set(item.nomeTime, new Map());
+                    }
+                    if (!timesMap.get(item.nomeTime).has(item.nomePessoa)) {
+                        timesMap.get(item.nomeTime).set(item.nomePessoa, []);
+                    }
+                    timesMap.get(item.nomeTime).get(item.nomePessoa).push(item);
+                });
+
+                timesMap.forEach((members, time) => {
+                    let teamContainer = $(`
+                            <div class="team">
+                                <h3>${time}</h3>
+                                <div class="team-members"></div>
+                            </div>
+                        `);
+                    members.forEach((items, pessoa) => {
+                        let formacoes = items.map(item => item.nomeFormacao).join(' - ');
+                        let fatoAleatorio = items[0].fatoAleatorio; // Usando o fato aleatório do primeiro item
+                        teamContainer.find('.team-members').append(`
+                                <div class="card">
+                                    <p><strong>Pessoa:</strong> ${pessoa}</p>
+                                    <p><strong>Formações:</strong> ${formacoes}</p>
+                                    <p><strong>Fato Aleatório:</strong> ${fatoAleatorio}</p>
+                                </div>
+                            `);
+                    });
+                    timesContainer.append(teamContainer);
+                });
+            })
+            .catch(error => {
+                alert('Erro ao buscar dados: ' + error.message);
+                console.error('Erro ao buscar dados:', error);
+            });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

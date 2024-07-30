@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Adicionar Time</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Adicionar Time</h2>
+    <form id="addTimeForm" class="mb-4">
+        <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="setor">Setor:</label>
+            <input type="text" id="setor" name="setor" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" onclick="location.href='/times'">Voltar</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function() {
+        $('#addTimeForm').on('submit', function(event) {
+            event.preventDefault();
+            const timeData = {
+                nome: $('#nome').val(),
+                setor: $('#setor').val()
+            };
+
+            fetch('/api/times', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(timeData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(err => { throw new Error(err) });
+                    }
+                    alert('Time adicionado com sucesso!');
+                    window.location.href = '/times';
+                })
+                .catch(error => {
+                    alert('Erro: ' + error.message);
+                });
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

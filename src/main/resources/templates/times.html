@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Gerenciar Times</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="/css/styles.css">
+</head>
+<body>
+<div class="container mt-4">
+  <h2>Gerenciar Times</h2>
+  <form id="searchForm" class="mb-4">
+    <div class="form-group">
+      <label for="search">Buscar por ID:</label>
+      <div class="input-group">
+        <input type="text" id="search" name="search" class="form-control">
+        <div class="input-group-append">
+          <button type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div class="form-group mb-4">
+    <button class="btn btn-primary" onclick="location.href='/time/criar'">Adicionar Time</button>
+    <button class="btn btn-secondary" onclick="location.href='/'">Voltar</button>
+  </div>
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nome</th>
+      <th>Setor</th>
+      <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody id="timesList">
+    <!-- Conteúdo será preenchido pelo JavaScript -->
+    </tbody>
+  </table>
+</div>
+<script>
+  document.getElementById('searchForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const id = document.getElementById('search').value;
+    fetch(`/api/times/${id}`)
+            .then(response => {
+              if (!response.ok) {
+                return response.text().then(err => { throw new Error(err) });
+              }
+              return response.json();
+            })
+            .then(data => {
+              const tableBody = document.getElementById('timesList');
+              tableBody.innerHTML = ''; // Limpa a tabela antes de adicionar o novo resultado
+              tableBody.innerHTML = `
+                    <tr>
+                        <td>${data.id}</td>
+                        <td>${data.nome}</td>
+                        <td>${data.setor}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="location.href='/time/${data.id}'">Editar</button>
+                            <button class="btn btn-danger" onclick="deleteTime(${data.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            })
+            .catch(error => {
+              alert('Erro: ' + error.message);
+            });
+  });
+
+  function deleteTime(id) {
+    fetch(`/api/times/${id}`, { method: 'DELETE' })
+            .then(response => {
+              if (!response.ok) {
+                return response.text().then(err => { throw new Error(err) });
+              }
+              location.reload();
+            })
+            .catch(error => {
+              alert('Erro: ' + error.message);
+            });
+  }
+
+  fetch('/api/times')
+          .then(response => response.json())
+          .then(data => {
+            const tableBody = document.getElementById('timesList');
+            data.forEach(time => {
+              tableBody.innerHTML += `
+                    <tr>
+                        <td>${time.id}</td>
+                        <td>${time.nome}</td>
+                        <td>${time.setor}</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="location.href='/time/${time.id}'">Editar</button>
+                            <button class="btn btn-danger" onclick="deleteTime(${time.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            });
+          })
+          .catch(error => {
+            alert('Erro: ' + error.message);
+          });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:object="${formacao}">
+<head>
+    <title>Editar Formação</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Editar Formação</h2>
+    <form id="editFormacaoForm" class="mb-4">
+        <input type="hidden" id="id" name="id">
+        <div class="form-group">
+            <label for="nomeCurso">Nome do Curso:</label>
+            <input type="text" id="nomeCurso" name="nomeCurso" class="form-control" th:value="*{nomeCurso}" required>
+        </div>
+        <div class="form-group">
+            <label for="nivelCurso">Nível do Curso:</label>
+            <select id="nivelCurso" name="nivelCurso" class="form-control" required>
+                <option th:each="nivel : ${niveisCurso}" th:value="${nivel}" th:text="${nivel}"
+                        th:selected="${nivel} == *{nivelCurso}"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="dataConclusao">Data de Conclusão:</label>
+            <input type="date" id="dataConclusao" name="dataConclusao" class="form-control" th:value="*{dataConclusao}" required>
+        </div>
+        <div class="form-group">
+            <label for="nomeInstituicao">Nome da Instituição:</label>
+            <input type="text" id="nomeInstituicao" name="nomeInstituicao" class="form-control" th:value="*{nomeInstituicao}" required>
+        </div>
+        <div class="form-group">
+            <label for="pessoa">Pessoa:</label>
+            <select id="pessoa" name="pessoa" class="form-control" required>
+                <option th:each="pessoa : ${pessoas}" th:value="${pessoa.id}" th:text="${pessoa.nome}"
+                        th:selected="${pessoa.id} == *{pessoa.id}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <button type="button" class="btn btn-secondary" onclick="location.href='/formacoes'">Voltar</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function() {
+        const id = window.location.pathname.split('/').pop();
+
+        fetch(`/api/formacoes/${id}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Formação não encontrada');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.id !== undefined) {
+                    $('#id').val(data.id);
+                    $('#nomeCurso').val(data.nomeCurso);
+                    $('#nivelCurso').val(data.nivelCurso);
+                    $('#dataConclusao').val(data.dataConclusao);
+                    $('#nomeInstituicao').val(data.nomeInstituicao);
+                    $('#pessoa').val(data.pessoa.id);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados da formação:', error);
+            });
+
+        $('#editFormacaoForm').on('submit', function(event) {
+            event.preventDefault();
+            const formacaoData = {
+                id: $('#id').val(),
+                nomeCurso: $('#nomeCurso').val(),
+                nivelCurso: $('#nivelCurso').val(),
+                dataConclusao: $('#dataConclusao').val(),
+                nomeInstituicao: $('#nomeInstituicao').val(),
+                pessoa: { id: $('#pessoa').val() }
+            };
+            fetch(`/api/formacoes/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formacaoData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.message) });
+                    }
+                    alert('Formação atualizada com sucesso!');
+                    window.location.href = '/formacoes';
+                })
+                .catch(error => {
+                    alert('Erro: ' + error.message);
+                    console.error('Erro ao atualizar formação:', error);
+                });
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
